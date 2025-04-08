@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Table, Button, Form, Modal } from "react-bootstrap";
+import { Card, Table, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -27,6 +27,7 @@ const InvestmentPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const itemsPerPage = 5;
 
   const fetchInvestment = async (token, search = "", page = 1, limit = 5) => {
@@ -65,8 +66,22 @@ const InvestmentPage = () => {
   };
 
   const handleAddOrUpdateInvestment = async () => {
-    const token = localStorage.getItem("token");
+    const { startDate, type, name, amountInvested, currentValue } =
+      newInvestment;
 
+    if (
+      !startDate ||
+      !type.trim() ||
+      !name.trim() ||
+      !amountInvested ||
+      !currentValue
+    ) {
+      toast.error("Please fill out all the fields before submitting.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    setSubmitLoading(true);
     try {
       if (editMode && selectedInvestment) {
         const res = await updateInvestment(
@@ -93,6 +108,8 @@ const InvestmentPage = () => {
     } catch (err) {
       console.error("Failed to save investment:", err);
       toast.error("Failed to save investment");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -243,7 +260,9 @@ const InvestmentPage = () => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Start Date</Form.Label>
+              <Form.Label>
+                Start Date <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="date"
                 name="startDate"
@@ -252,7 +271,9 @@ const InvestmentPage = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Type</Form.Label>
+              <Form.Label>
+                Type <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="text"
                 name="type"
@@ -262,7 +283,9 @@ const InvestmentPage = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
+              <Form.Label>
+                Name <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="text"
                 name="name"
@@ -272,7 +295,9 @@ const InvestmentPage = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Amount Invested (₹)</Form.Label>
+              <Form.Label>
+                Amount Invested (₹) <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="number"
                 name="amountInvested"
@@ -282,7 +307,9 @@ const InvestmentPage = () => {
               />
             </Form.Group>
             <Form.Group>
-              <Form.Label>Current Value (₹)</Form.Label>
+              <Form.Label>
+                Current Value (₹) <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="number"
                 name="currentValue"
@@ -298,7 +325,20 @@ const InvestmentPage = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button onClick={handleAddOrUpdateInvestment}>
+          <Button
+            onClick={handleAddOrUpdateInvestment}
+            disabled={submitLoading}
+          >
+            {submitLoading && (
+              <Spinner
+                animation="border"
+                role="status"
+                size="sm"
+                className="me-2"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            )}
             {editMode ? "Update" : "Add"} Investment
           </Button>
         </Modal.Footer>

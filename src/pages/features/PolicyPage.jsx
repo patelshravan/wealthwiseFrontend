@@ -27,6 +27,7 @@ const PolicyPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const itemsPerPage = 5;
 
   const fetchPolicies = async (token, search = "", page = 1, limit = 5) => {
@@ -65,8 +66,21 @@ const PolicyPage = () => {
   };
 
   const handleAddOrUpdatePolicy = async () => {
-    const token = localStorage.getItem("token");
+    const { policyNumber, policyName, premiumAmount, dueDate, maturityDate } =
+      newPolicy;
 
+    if (
+      !policyNumber ||
+      !policyName.trim() ||
+      !premiumAmount ||
+      !dueDate ||
+      !maturityDate
+    ) {
+      toast.error("Please fill out all policy fields before submitting.");
+      return;
+    }
+    const token = localStorage.getItem("token");
+    setSubmitLoading(true);
     try {
       if (editMode && selectedPolicy) {
         const res = await updatePolicy(selectedPolicy._id, newPolicy, token);
@@ -87,6 +101,8 @@ const PolicyPage = () => {
     } catch (err) {
       console.error("Failed to save policy:", err);
       toast.error("Failed to save policy");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -239,7 +255,9 @@ const PolicyPage = () => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Policy Number</Form.Label>
+              <Form.Label>
+                Policy Number <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="number"
                 name="policyNumber"
@@ -249,7 +267,9 @@ const PolicyPage = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Policy Name</Form.Label>
+              <Form.Label>
+                Policy Name <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="text"
                 name="policyName"
@@ -259,7 +279,9 @@ const PolicyPage = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Premium Amount (₹)</Form.Label>
+              <Form.Label>
+                Premium Amount (₹) <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="number"
                 name="premiumAmount"
@@ -269,7 +291,9 @@ const PolicyPage = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Due Date</Form.Label>
+              <Form.Label>
+                Due Date <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="date"
                 name="dueDate"
@@ -278,7 +302,9 @@ const PolicyPage = () => {
               />
             </Form.Group>
             <Form.Group>
-              <Form.Label>Maturity Date</Form.Label>
+              <Form.Label>
+                Maturity Date <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="date"
                 name="maturityDate"
@@ -289,10 +315,24 @@ const PolicyPage = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowModal(false)}
+            disabled={submitLoading}
+          >
             Cancel
           </Button>
-          <Button onClick={handleAddOrUpdatePolicy}>
+          <Button onClick={handleAddOrUpdatePolicy} disabled={submitLoading}>
+            {submitLoading && (
+              <Spinner
+                animation="border"
+                role="status"
+                size="sm"
+                className="me-2"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            )}
             {editMode ? "Update" : "Add"} Policy
           </Button>
         </Modal.Footer>

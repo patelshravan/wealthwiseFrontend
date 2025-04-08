@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Table, Button, Form, Modal } from "react-bootstrap";
+import { Card, Table, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -24,6 +24,7 @@ const SavingsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const itemsPerPage = 5;
 
   const fetchSavings = async (token, search = "", page = 1, limit = 5) => {
@@ -62,8 +63,12 @@ const SavingsPage = () => {
   };
 
   const handleAddOrUpdateSaving = async () => {
+    if (!newSaving.amount) {
+      toast.error("Please fill out the amount field.");
+      return;
+    }
     const token = localStorage.getItem("token");
-
+    setSubmitLoading(true);
     try {
       if (editMode && selectedSaving) {
         const res = await updateSavings(selectedSaving._id, newSaving, token);
@@ -76,14 +81,15 @@ const SavingsPage = () => {
         toast.success(res.message);
         setSavings((prev) => [...prev, res.data]);
       }
-
       setShowModal(false);
-      setNewSaving({ category: "", amount: "", note: "" });
+      setNewSaving({ amount: "", note: "" });
       setEditMode(false);
       setSelectedSaving(null);
     } catch (err) {
       console.error("Failed to save saving:", err);
       toast.error("Failed to save saving");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -219,7 +225,9 @@ const SavingsPage = () => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Amount (₹)</Form.Label>
+              <Form.Label>
+                Amount (₹) <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="number"
                 name="amount"
@@ -245,7 +253,17 @@ const SavingsPage = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button onClick={handleAddOrUpdateSaving}>
+          <Button onClick={handleAddOrUpdateSaving} disabled={submitLoading}>
+            {submitLoading && (
+              <Spinner
+                animation="border"
+                role="status"
+                size="sm"
+                className="me-2"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            )}
             {editMode ? "Update" : "Add"} Saving
           </Button>
         </Modal.Footer>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Table, Button, Form, Modal } from "react-bootstrap";
+import { Card, Table, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -18,7 +18,8 @@ const ExpensePage = () => {
     category: "",
     amount: "",
     note: "",
-    image: null, // Initialize image as null to handle file
+    image: null,
+    date: "",
   });
   const [editMode, setEditMode] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
@@ -26,6 +27,8 @@ const ExpensePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const itemsPerPage = 5;
 
   // State for enlarged image
@@ -56,7 +59,7 @@ const ExpensePage = () => {
     debouncedFetch();
 
     return () => {
-      debouncedFetch.cancel(); // Cleanup on unmount
+      debouncedFetch.cancel();
     };
   }, [searchTerm, currentPage]);
 
@@ -70,13 +73,22 @@ const ExpensePage = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setNewExpense((prev) => ({
-      ...prev,
-      image: file, // Update image with the file object
-    }));
+    if (file) {
+      setNewExpense((prev) => ({
+        ...prev,
+        image: file,
+      }));
+
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
   };
 
   const handleAddOrUpdateExpense = async () => {
+    if (!newExpense.category.trim() || !newExpense.amount) {
+      toast.error("Please fill out the category, and amount fields.");
+      return;
+    }
     const token = localStorage.getItem("token");
     const formData = new FormData();
 
@@ -89,6 +101,7 @@ const ExpensePage = () => {
       }
     });
 
+    setSubmitLoading(true);
     try {
       if (editMode && selectedExpense) {
         const res = await updateExpense(selectedExpense._id, formData, token);
@@ -111,21 +124,32 @@ const ExpensePage = () => {
       });
       setEditMode(false);
       setSelectedExpense(null);
+      setImagePreview(null);
     } catch (err) {
       console.error("Failed to save expense:", err);
       toast.error("Failed to save expense");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
   const handleEdit = (expense) => {
     setEditMode(true);
     setSelectedExpense(expense);
+
+    const formattedDate = expense.date
+      ? new Date(expense.date).toISOString().split("T")[0]
+      : "";
+
     setNewExpense({
       category: expense.category,
       amount: expense.amount,
       note: expense.note,
-      image: null, // Reset image for editing; image URL is read-only in UI
+      date: formattedDate,
+      image: null,
     });
+
+    setImagePreview(expense.image);
     setShowModal(true);
   };
 
@@ -178,7 +202,21 @@ const ExpensePage = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button onClick={() => setShowModal(true)}>
+          <Button
+            onClick={() => {
+              setEditMode(false);
+              setSelectedExpense(null);
+              setNewExpense({
+                category: "",
+                amount: "",
+                note: "",
+                date: "",
+                image: null,
+              });
+              setImagePreview(null);
+              setShowModal(true);
+            }}
+          >
             <FaPlus className="me-2" /> Add Expense
           </Button>
         </div>
@@ -282,7 +320,9 @@ const ExpensePage = () => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Category</Form.Label>
+              <Form.Label>
+                Category <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="text"
                 name="category"
@@ -292,13 +332,24 @@ const ExpensePage = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Amount (₹)</Form.Label>
+              <Form.Label>
+                Amount (₹) <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
                 type="number"
                 name="amount"
                 value={newExpense.amount}
                 onChange={handleChange}
                 placeholder="Enter amount"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="date"
+                value={newExpense.date}
+                onChange={handleChange}
               />
             </Form.Group>
             <Form.Group>
@@ -312,13 +363,27 @@ const ExpensePage = () => {
                 placeholder="Optional note"
               />
             </Form.Group>
-            <Form.Group className="mb-3">
+            <Form.Group className="mt-3">
               <Form.Label>Upload Image</Form.Label>
               <Form.Control
                 type="file"
                 name="image"
-                onChange={handleFileChange} // Use separate handler for file
+                onChange={handleFileChange}
               />
+
+              {imagePreview && (
+                <div className="mt-2 text-center">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "200px",
+                      borderRadius: "5px",
+                    }}
+                  />
+                </div>
+              )}
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -326,7 +391,17 @@ const ExpensePage = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button onClick={handleAddOrUpdateExpense}>
+          <Button onClick={handleAddOrUpdateExpense} disabled={submitLoading}>
+            {submitLoading && (
+              <Spinner
+                animation="border"
+                role="status"
+                size="sm"
+                className="me-2"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            )}
             {editMode ? "Update" : "Add"} Expense
           </Button>
         </Modal.Footer>
