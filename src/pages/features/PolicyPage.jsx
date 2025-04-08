@@ -1,0 +1,304 @@
+import React, { useEffect, useState } from "react";
+import { Card, Table, Button, Form, Modal } from "react-bootstrap";
+import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import debounce from "lodash.debounce";
+import {
+  getPolicy,
+  createPolicy,
+  updatePolicy,
+  deletePolicy,
+} from "../../services/policy.service";
+
+const PolicyPage = () => {
+  const [policies, setPolicies] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [newPolicy, setNewPolicy] = useState({
+    policyNumber: "",
+    policyName: "",
+    premiumAmount: "",
+    dueDate: "",
+    maturityDate: "",
+  });
+  const [editMode, setEditMode] = useState(false);
+  const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const itemsPerPage = 5;
+
+  const fetchPolicies = async (token, search = "", page = 1, limit = 5) => {
+    setLoading(true);
+    try {
+      const res = await getPolicy(token, search, page, limit);
+      setPolicies(res.data);
+      setTotalPages(res.pages);
+    } catch (err) {
+      console.error("Failed to fetch policies:", err);
+      toast.error("Failed to fetch policies.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    const debouncedFetch = debounce(() => {
+      fetchPolicies(token, searchTerm, currentPage, itemsPerPage);
+    }, 500); // 500ms debounce
+
+    debouncedFetch();
+
+    return () => {
+      debouncedFetch.cancel(); // Cleanup on unmount
+    };
+  }, [searchTerm, currentPage]);
+
+  const handleChange = (e) => {
+    setNewPolicy((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleAddOrUpdatePolicy = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      if (editMode && selectedPolicy) {
+        const res = await updatePolicy(selectedPolicy._id, newPolicy, token);
+        toast.success(res.message);
+        setPolicies((prev) =>
+          prev.map((lic) => (lic._id === selectedPolicy._id ? res.data : lic))
+        );
+      } else {
+        const res = await createPolicy(newPolicy, token);
+        toast.success(res.message);
+        setPolicies((prev) => [...prev, res.data]);
+      }
+
+      setShowModal(false);
+      setNewPolicy({ category: "", amount: "", note: "" });
+      setEditMode(false);
+      setSelectedPolicy(null);
+    } catch (err) {
+      console.error("Failed to save policy:", err);
+      toast.error("Failed to save policy");
+    }
+  };
+
+  const handleEdit = (policy) => {
+    setEditMode(true);
+    setSelectedPolicy(policy);
+
+    // Format the startDate to YYYY-MM-DD
+    const formattedDueDate = policy.dueDate
+      ? new Date(policy.dueDate).toISOString().split("T")[0]
+      : "";
+
+    const formattedMaturityDate = policy.maturityDate
+      ? new Date(policy.maturityDate).toISOString().split("T")[0]
+      : "";
+
+    setNewPolicy({
+      policyNumber: policy.policyNumber,
+      policyName: policy.policyName,
+      premiumAmount: policy.premiumAmount,
+      dueDate: formattedDueDate,
+      maturityDate: formattedMaturityDate,
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will permanently delete the policy.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await deletePolicy(id, token);
+        toast.success(res.message);
+        setPolicies((prev) => prev.filter((lic) => lic._id !== id));
+      } catch (err) {
+        console.error("Delete failed:", err);
+        toast.error("Failed to delete policy");
+      }
+    }
+  };
+
+  return (
+    <>
+      <Card className="p-4 shadow-sm mb-4">
+        <div className="d-flex justify-content-between align-items-center">
+          <h4 className="mb-0">LIC Policies</h4>
+          <Form.Control
+            type="text"
+            placeholder="Search by policy number, name or premium amount"
+            className="w-50 w-md-75"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Button onClick={() => setShowModal(true)}>
+            <FaPlus className="me-2" /> Add Policy
+          </Button>
+        </div>
+      </Card>
+
+      <Card className="p-3 shadow-sm">
+        {loading ? (
+          <div className="d-flex justify-content-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : policies.length === 0 ? (
+          <p className="text-muted text-center">No policies added yet.</p>
+        ) : (
+          <Table responsive hover bordered className="mb-0">
+            <thead className="table-light">
+              <tr>
+                <th>#</th>
+                <th>Policy Number</th>
+                <th>Policy Name</th>
+                <th>Premium Amount</th>
+                <th>Due Date</th>
+                <th>Maturity Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {policies.map((lic, index) => (
+                <tr key={lic._id}>
+                  <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                  <td>{lic.policyNumber}</td>
+                  <td>{lic.policyName}</td>
+                  <td>₹ {lic.premiumAmount}</td>
+                  <td>{new Date(lic.dueDate).toDateString()}</td>
+                  <td>{new Date(lic.maturityDate).toDateString()}</td>
+                  <td>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="me-2"
+                      onClick={() => handleEdit(lic)}
+                    >
+                      <FaEdit />
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDelete(lic._id)}
+                    >
+                      <FaTrash />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
+        <div className="d-flex justify-content-end mt-3 align-items-center gap-2">
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Prev
+          </Button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      </Card>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{editMode ? "Edit Policy" : "Add Policy"}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Policy Number</Form.Label>
+              <Form.Control
+                type="number"
+                name="policyNumber"
+                value={newPolicy.policyNumber}
+                onChange={handleChange}
+                placeholder="e.g., 561394567"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Policy Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="policyName"
+                value={newPolicy.policyName}
+                onChange={handleChange}
+                placeholder="e.g., Jeevan Labh"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Premium Amount (₹)</Form.Label>
+              <Form.Control
+                type="number"
+                name="premiumAmount"
+                value={newPolicy.premiumAmount}
+                onChange={handleChange}
+                placeholder="Enter premium amount"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Due Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="dueDate"
+                value={newPolicy.dueDate}
+                onChange={handleChange}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Maturity Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="maturityDate"
+                value={newPolicy.maturityDate}
+                onChange={handleChange}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleAddOrUpdatePolicy}>
+            {editMode ? "Update" : "Add"} Policy
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+};
+
+export default PolicyPage;
