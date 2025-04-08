@@ -87,7 +87,11 @@ const ProfilePage = () => {
           <Form onSubmit={handleSubmit}>
             <div className="mb-4 text-center position-relative">
               <Image
-                src={preview || "/default-avatar.png"}
+                src={preview || "/images/default-avatar.png"}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/images/default-avatar.png";
+                }}
                 roundedCircle
                 width={120}
                 height={120}
