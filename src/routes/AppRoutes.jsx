@@ -15,6 +15,7 @@ import MainLayout from "../layouts/MainLaout";
 import AuthLayout from "../layouts/AuthLayout";
 import InvestmentPage from "../pages/features/InvestmentPage";
 import PolicyPage from "../pages/features/PolicyPage";
+import SettingsPage from "../pages/features/Settings";
 
 const AppRoutes = () => {
   return (
@@ -74,6 +75,7 @@ const AppRoutes = () => {
       >
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="/expenses" element={<ExpensePage />} />
         <Route path="/savings" element={<SavingsPage />} />
         <Route path="/investments" element={<InvestmentPage />} />
