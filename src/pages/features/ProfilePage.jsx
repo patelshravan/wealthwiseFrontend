@@ -3,6 +3,7 @@ import { Form, Button, Card, Spinner, Image } from "react-bootstrap";
 import { getUserProfile, updateUserProfile } from "../../services/user.service";
 import { toast } from "react-toastify";
 import { FaCamera } from "react-icons/fa";
+import defaultAvatar from "../../assets/default-avatar.png";
 
 const ProfilePage = () => {
   const [user, setUser] = useState({});
@@ -87,10 +88,10 @@ const ProfilePage = () => {
           <Form onSubmit={handleSubmit}>
             <div className="mb-4 text-center position-relative">
               <Image
-                src={preview || "/images/default-avatar.png"}
+                src={preview || defaultAvatar}
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = "/images/default-avatar.png";
+                  e.target.src = defaultAvatar;
                 }}
                 roundedCircle
                 width={120}
