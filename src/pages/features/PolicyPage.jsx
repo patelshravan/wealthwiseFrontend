@@ -19,6 +19,8 @@ const PolicyPage = () => {
     policyName: "",
     premiumAmount: "",
     dueDate: "",
+    premiumMode: "monthly",
+    lastPaidDate: "",
     maturityDate: "",
   });
   const [editMode, setEditMode] = useState(false);
@@ -95,7 +97,15 @@ const PolicyPage = () => {
       }
 
       setShowModal(false);
-      setNewPolicy({ category: "", amount: "", note: "" });
+      setNewPolicy({
+        policyNumber: "",
+        policyName: "",
+        premiumAmount: "",
+        dueDate: "",
+        premiumMode: "monthly",
+        lastPaidDate: "",
+        maturityDate: "",
+      });
       setEditMode(false);
       setSelectedPolicy(null);
     } catch (err) {
@@ -110,22 +120,19 @@ const PolicyPage = () => {
     setEditMode(true);
     setSelectedPolicy(policy);
 
-    // Format the startDate to YYYY-MM-DD
-    const formattedDueDate = policy.dueDate
-      ? new Date(policy.dueDate).toISOString().split("T")[0]
-      : "";
-
-    const formattedMaturityDate = policy.maturityDate
-      ? new Date(policy.maturityDate).toISOString().split("T")[0]
-      : "";
+    const formatDate = (date) =>
+      date ? new Date(date).toISOString().split("T")[0] : "";
 
     setNewPolicy({
       policyNumber: policy.policyNumber,
       policyName: policy.policyName,
       premiumAmount: policy.premiumAmount,
-      dueDate: formattedDueDate,
-      maturityDate: formattedMaturityDate,
+      dueDate: formatDate(policy.dueDate),
+      premiumMode: policy.premiumMode,
+      lastPaidDate: formatDate(policy.lastPaidDate),
+      maturityDate: formatDate(policy.maturityDate),
     });
+
     setShowModal(true);
   };
 
@@ -190,6 +197,7 @@ const PolicyPage = () => {
                 <th>Policy Name</th>
                 <th>Premium Amount</th>
                 <th>Due Date</th>
+                <th>Next Due Date</th>
                 <th>Maturity Date</th>
                 <th>Actions</th>
               </tr>
@@ -202,6 +210,7 @@ const PolicyPage = () => {
                   <td>{lic.policyName}</td>
                   <td>₹ {Number(lic.premiumAmount).toLocaleString("en-IN")}</td>
                   <td>{new Date(lic.dueDate).toDateString()}</td>
+                  <td>{new Date(lic.nextDueDate).toDateString()}</td>
                   <td>{new Date(lic.maturityDate).toDateString()}</td>
                   <td>
                     <Button
@@ -301,6 +310,32 @@ const PolicyPage = () => {
                 onChange={handleChange}
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                Premium Mode <span className="text-danger">*</span>
+              </Form.Label>
+              <Form.Select
+                name="premiumMode"
+                value={newPolicy.premiumMode}
+                onChange={handleChange}
+              >
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="half-yearly">Half-Yearly</option>
+                <option value="yearly">Yearly</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Last Paid Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="lastPaidDate"
+                value={newPolicy.lastPaidDate}
+                onChange={handleChange}
+              />
+            </Form.Group>
+
             <Form.Group>
               <Form.Label>
                 Maturity Date <span className="text-danger">*</span>
