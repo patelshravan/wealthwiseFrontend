@@ -46,10 +46,13 @@ const LoginPage = () => {
         localStorage.removeItem("rememberedPassword");
       }
 
-      // ✅ Save user details
-      localStorage.setItem("userId", _id);
-      localStorage.setItem("userName", name);
-      localStorage.setItem("userAvatar", profileImage || "");
+      const user = {
+        _id,
+        name,
+        email,
+        profileImage: profileImage || "",
+      };
+      localStorage.setItem("user", JSON.stringify(user));
 
       toast.success(message || "Logged in successfully!");
       navigate("/dashboard");

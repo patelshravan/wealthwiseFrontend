@@ -1,18 +1,13 @@
-import React, { useState } from "react";
-import {
-  Card,
-  Form,
-  Button,
-  Row,
-  Col,
-  Accordion,
-  Modal,
-} from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Card, Form, Button, Row, Col, Accordion } from "react-bootstrap";
+import { toast } from "react-toastify";
+import { changePassword } from "../../services/auth.service";
+import { BsEye, BsEyeSlash } from "react-icons/bs";
 
 const SettingsPage = () => {
   const [settings, setSettings] = useState({
-    name: "John Doe",
-    email: "john@example.com",
+    name: "",
+    email: "",
     mobile: "",
     country: "India",
     currency: "INR",
@@ -20,9 +15,24 @@ const SettingsPage = () => {
     theme: "light",
     monthlyGoal: "",
   });
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [pendingEmail, setPendingEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (user) {
+      setSettings((prev) => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+      }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,44 +58,37 @@ const SettingsPage = () => {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (otp === "123456") {
-      // Assume success
-      console.log("OTP verified. Email updated to", pendingEmail);
-      setShowOtpModal(false);
-      // Later: Call backend to update profile with verified email
-    } else {
-      alert("Invalid OTP. Try again.");
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please fill all password fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirmation do not match.");
+      return;
+    }
+
+    try {
+      const response = await changePassword(
+        settings.email,
+        currentPassword,
+        newPassword,
+        confirmPassword
+      );
+      toast.success(response.data.message);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Something went wrong. Try again."
+      );
     }
   };
 
   return (
     <>
-      <Modal show={showOtpModal} onHide={() => setShowOtpModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Verify New Email</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Enter OTP sent to {pendingEmail}</Form.Label>
-            <Form.Control
-              type="text"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter 6-digit OTP"
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowOtpModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleVerifyOtp}>
-            Verify & Save Email
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       <Card className="p-4 shadow-sm">
         <h4 className="mb-4">
           Settings -- COMING SOON (DEVELOPMENT IN PROGRESS 🧑‍💻)
@@ -108,6 +111,7 @@ const SettingsPage = () => {
                 <Form.Control
                   name="email"
                   type="email"
+                  readOnly
                   value={settings.email}
                   onChange={handleChange}
                 />
@@ -115,41 +119,99 @@ const SettingsPage = () => {
             </Col>
           </Row>
 
-          <Form.Group className="mb-3">
-            <Form.Label>Mobile Number</Form.Label>
-            <Form.Control
-              name="mobile"
-              value={settings.mobile}
-              onChange={handleChange}
-              placeholder="+91 9876543210"
-            />
-          </Form.Group>
-
           <Accordion defaultActiveKey="0">
             <Accordion.Item eventKey="0">
               <Accordion.Header>Change Password</Accordion.Header>
               <Accordion.Body>
                 <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>New Password</Form.Label>
-                      <Form.Control
-                        type="password"
-                        placeholder="New Password"
-                      />
+                  <Col md={4}>
+                    <Form.Group className="mb-3 position-relative">
+                      <Form.Label>Current Password</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type={showCurrent ? "text" : "password"}
+                          placeholder="Current Password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                        />
+                        <span
+                          onClick={() => setShowCurrent((prev) => !prev)}
+                          style={{
+                            position: "absolute",
+                            top: "50%",
+                            right: "10px",
+                            transform: "translateY(-50%)",
+                            cursor: "pointer",
+                            color: "#888",
+                          }}
+                        >
+                          {showCurrent ? <BsEyeSlash /> : <BsEye />}
+                        </span>
+                      </div>
                     </Form.Group>
                   </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
+                  <Col md={4}>
+                    <Form.Group className="mb-3 position-relative">
+                      <Form.Label>New Password</Form.Label>
+                      <div className="position-relative">
+                        <Form.Control
+                          type={showNew ? "text" : "password"}
+                          placeholder="New Password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                        <span
+                          onClick={() => setShowNew((prev) => !prev)}
+                          style={{
+                            position: "absolute",
+                            top: "50%",
+                            right: "10px",
+                            transform: "translateY(-50%)",
+                            cursor: "pointer",
+                            color: "#888",
+                          }}
+                        >
+                          {showCurrent ? <BsEyeSlash /> : <BsEye />}
+                        </span>
+                      </div>
+                    </Form.Group>
+                  </Col>
+                  <Col md={4}>
+                    <Form.Group className="mb-3 position-relative">
                       <Form.Label>Confirm Password</Form.Label>
-                      <Form.Control type="password" placeholder="Confirm" />
+                      <div className="position-relative">
+                        <Form.Control
+                          type={showConfirm ? "text" : "password"}
+                          placeholder="Confirm Password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                        <span
+                          onClick={() => setShowConfirm((prev) => !prev)}
+                          style={{
+                            position: "absolute",
+                            top: "50%",
+                            right: "10px",
+                            transform: "translateY(-50%)",
+                            cursor: "pointer",
+                            color: "#888",
+                          }}
+                        >
+                          {showCurrent ? <BsEyeSlash /> : <BsEye />}
+                        </span>
+                      </div>
                     </Form.Group>
                   </Col>
                 </Row>
-                <Button variant="outline-primary">Update Password</Button>
+
+                <Button
+                  variant="outline-primary"
+                  onClick={handleChangePassword}
+                >
+                  Update Password
+                </Button>
               </Accordion.Body>
             </Accordion.Item>
-
             <Accordion.Item eventKey="1">
               <Accordion.Header>Preferences</Accordion.Header>
               <Accordion.Body>

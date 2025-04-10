@@ -13,12 +13,12 @@ const ProfilePage = () => {
   const [originalUser, setOriginalUser] = useState({});
 
   const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("userId");
+  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await getUserProfile(userId, token);
+        const res = await getUserProfile(storedUser._id, token);
         setUser(res.data);
         setOriginalUser(res.data);
         setPreview(res.data.profileImage || "");
@@ -29,7 +29,7 @@ const ProfilePage = () => {
       }
     };
     fetchUser();
-  }, [userId, token]);
+  }, [storedUser._id, token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,17 +57,16 @@ const ProfilePage = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateUserProfile(userId, user, token);
-
-      const response = await updateUserProfile(userId, user, token);
+      const response = await updateUserProfile(storedUser._id, user, token);
       const updatedUser = response.data;
 
-      localStorage.setItem("userAvatar", updatedUser.profileImage || "");
-      localStorage.setItem("userName", updatedUser.name || "Guest");
+      // 🔄 Update localStorage with full user object
+      localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      window.dispatchEvent(new Event("storage"));
-
+      window.dispatchEvent(new Event("storage")); // Optional: trigger listeners
       toast.success("Profile updated successfully");
+
+      setOriginalUser(updatedUser);
     } catch (err) {
       toast.error("Failed to update profile");
     } finally {

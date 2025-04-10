@@ -6,22 +6,21 @@ import defaultAvatar from "../assets/default-avatar.png";
 const Header = ({ onLogout, onToggleSidebar }) => {
   const [user, setUser] = useState({
     name: "Guest",
-    avatar: defaultAvatar,
+    profileImage: defaultAvatar,
   });
 
   useEffect(() => {
     const loadUser = () => {
-      const name = localStorage.getItem("userName") || "Guest";
-      const avatar = localStorage.getItem("userAvatar");
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
       setUser({
-        name,
-        avatar: avatar || defaultAvatar,
+        name: storedUser.name || "Guest",
+        profileImage: storedUser.profileImage || defaultAvatar,
       });
     };
 
     loadUser();
 
-    // 🔁 Listen to localStorage changes
+    // 🔁 Listen to localStorage changes (e.g., profile update)
     window.addEventListener("storage", loadUser);
 
     return () => {
@@ -54,7 +53,7 @@ const Header = ({ onLogout, onToggleSidebar }) => {
           <Dropdown align="end">
             <Dropdown.Toggle as={CustomToggle} id="dropdown-custom">
               <Image
-                src={user.avatar}
+                src={user.profileImage}
                 roundedCircle
                 width={40}
                 height={40}

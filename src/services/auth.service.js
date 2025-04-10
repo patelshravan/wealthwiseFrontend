@@ -26,6 +26,14 @@ export const resetPassword = (email, newPassword, confirmPassword) =>
     confirmPassword,
   });
 
+export const changePassword = (email, currentPassword, newPassword, confirmPassword) =>
+  axios.post(`${API_BASE}/auth/change-password`, {
+    email,
+    currentPassword,
+    newPassword,
+    confirmPassword,
+  });
+
 export const resendEmailOtp = (email) =>
   axios.post(`${API_BASE}/auth/resend-otp`, { email });
 
