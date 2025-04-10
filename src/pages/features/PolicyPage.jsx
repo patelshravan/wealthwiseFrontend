@@ -185,7 +185,7 @@ const PolicyPage = () => {
           <Table responsive hover bordered className="mb-0">
             <thead className="table-light">
               <tr>
-                <th>#</th>
+                <th>Sr. No.</th>
                 <th>Policy Number</th>
                 <th>Policy Name</th>
                 <th>Premium Amount</th>
@@ -200,7 +200,7 @@ const PolicyPage = () => {
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td>{lic.policyNumber}</td>
                   <td>{lic.policyName}</td>
-                  <td>₹ {lic.premiumAmount}</td>
+                  <td>₹ {Number(lic.premiumAmount).toLocaleString("en-IN")}</td>
                   <td>{new Date(lic.dueDate).toDateString()}</td>
                   <td>{new Date(lic.maturityDate).toDateString()}</td>
                   <td>

@@ -188,7 +188,7 @@ const InvestmentPage = () => {
           <Table responsive hover bordered className="mb-0">
             <thead className="table-light">
               <tr>
-                <th>#</th>
+                <th>Sr. No.</th>
                 <th>Start Date</th>
                 <th>Type</th>
                 <th>Name</th>
@@ -204,8 +204,10 @@ const InvestmentPage = () => {
                   <td>{new Date(inv.startDate).toDateString()}</td>{" "}
                   <td>{inv.type}</td>
                   <td>{inv.name}</td>
-                  <td>₹ {inv.amountInvested}</td>
-                  <td>₹ {inv.currentValue}</td>
+                  <td>
+                    ₹ {Number(inv.amountInvested).toLocaleString("en-IN")}
+                  </td>
+                  <td>₹ {Number(inv.currentValue).toLocaleString("en-IN")}</td>
                   <td>
                     <Button
                       variant="outline-primary"

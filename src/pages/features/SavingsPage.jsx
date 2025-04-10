@@ -159,7 +159,7 @@ const SavingsPage = () => {
           <Table responsive hover bordered className="mb-0">
             <thead className="table-light">
               <tr>
-                <th>#</th>
+                <th>Sr. No.</th>
                 <th>Date</th>
                 <th>Amount</th>
                 <th>Note</th>
@@ -171,8 +171,8 @@ const SavingsPage = () => {
                 <tr key={sav._id}>
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td>{new Date(sav.date).toDateString()}</td>
-                  <td>₹ {sav.amount}</td>
-                  <td>{sav.note}</td>
+                  <td>₹ {Number(sav.amount).toLocaleString("en-IN")}</td>
+                  <td>{sav.note || "--"}</td>
                   <td>
                     <Button
                       variant="outline-primary"

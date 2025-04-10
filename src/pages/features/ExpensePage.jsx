@@ -235,7 +235,7 @@ const ExpensePage = () => {
           <Table responsive hover bordered className="mb-0">
             <thead className="table-light">
               <tr>
-                <th>#</th>
+                <th>Sr. No.</th>
                 <th>Date</th>
                 <th>Category</th>
                 <th>Amount</th>
@@ -250,8 +250,8 @@ const ExpensePage = () => {
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td>{new Date(exp.date).toDateString()}</td>
                   <td>{exp.category}</td>
-                  <td>₹ {exp.amount}</td>
-                  <td>{exp.note}</td>
+                  <td>₹ {Number(exp.amount).toLocaleString("en-IN")}</td>
+                  <td>{exp.note || "--"}</td>
                   <td>
                     {exp.image ? (
                       <img
@@ -414,7 +414,7 @@ const ExpensePage = () => {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Enlarged Image</Modal.Title>
+          <Modal.Title>Expense Bill</Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
           <img

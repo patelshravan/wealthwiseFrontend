@@ -8,7 +8,6 @@ import VerifyOtpPage from "../pages/auth/VerifyOtpPage";
 import PublicRoute from "../components/PublicRoute";
 import PrivateRoute from "../components/PrivateRoute";
 import ProfilePage from "../pages/features/ProfilePage";
-import DashboardPage from "../pages/features/DashboardPage";
 import ExpensePage from "../pages/features/ExpensePage";
 import SavingsPage from "../pages/features/SavingsPage";
 import MainLayout from "../layouts/MainLaout";
@@ -16,6 +15,7 @@ import AuthLayout from "../layouts/AuthLayout";
 import InvestmentPage from "../pages/features/InvestmentPage";
 import PolicyPage from "../pages/features/PolicyPage";
 import SettingsPage from "../pages/features/Settings";
+import DashboardPage from "../pages/features/Dashboards/DashboardPage";
 
 const AppRoutes = () => {
   return (
