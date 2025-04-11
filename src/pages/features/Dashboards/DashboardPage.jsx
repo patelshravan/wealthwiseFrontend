@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, Spinner, Row, Col, Container } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { getDashboardStats } from "../../../services/dashboard.service";
@@ -9,6 +9,8 @@ import ExpenseCategoryChart from "./ExpenseCategoryChart";
 import InvestmentPerformanceChart from "./InvestmentPerformanceChart";
 import RecentActivity from "./RecentActivity";
 import DashboardFilter from "../../../components/DashboardFilter";
+import { formatCurrency } from "../../../utils/formatCurrency";
+import { PreferencesContext } from "../../../context/PreferencesContext";
 
 const cardStyle = {
   minHeight: "100px",
@@ -20,6 +22,8 @@ const cardStyle = {
 const DashboardPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const { prefs, exchangeRates } = useContext(PreferencesContext);
 
   const fetchDashboardData = async (
     filter = "this_month",
@@ -80,7 +84,7 @@ const DashboardPage = () => {
         >
           <div className="small text-muted">Total Expenses</div>
           <div className="fw-bold fs-5 text-primary">
-            ₹ {stats.totalExpenses.toLocaleString("en-IN")}
+            {formatCurrency(stats.totalExpenses, prefs.currency, exchangeRates)}
           </div>
         </Card>
 
@@ -89,8 +93,8 @@ const DashboardPage = () => {
           className="border-start border-3 border-success text-center"
         >
           <div className="small text-muted">Total Invested</div>
-          <div className="fw-bold fs-5 text-success">
-            ₹ {stats.totalInvested.toLocaleString("en-IN")}
+          <div className="fw-bold fs-5 text-primary">
+            {formatCurrency(stats.totalInvested, prefs.currency, exchangeRates)}
           </div>
         </Card>
 
@@ -99,8 +103,8 @@ const DashboardPage = () => {
           className="border-start border-3 border-warning text-center"
         >
           <div className="small text-muted">Current Investment Value</div>
-          <div className="fw-bold fs-5 text-warning">
-            ₹ {stats.totalCurrentValue.toLocaleString("en-IN")}
+          <div className="fw-bold fs-5 text-primary">
+            {formatCurrency(stats.totalInvested, prefs.currency, exchangeRates)}
           </div>
         </Card>
 
@@ -109,8 +113,8 @@ const DashboardPage = () => {
           className="border-start border-3 border-danger text-center"
         >
           <div className="small text-muted">Total Premium</div>
-          <div className="fw-bold fs-5 text-danger">
-            ₹ {stats.totalPremium.toLocaleString("en-IN")}
+          <div className="fw-bold fs-5 text-primary">
+            {formatCurrency(stats.totalPremium, prefs.currency, exchangeRates)}
           </div>
         </Card>
 
@@ -119,8 +123,8 @@ const DashboardPage = () => {
           className="border-start border-3 border-info text-center"
         >
           <div className="small text-muted">Total Savings</div>
-          <div className="fw-bold fs-5 text-info">
-            ₹ {stats.totalSavings.toLocaleString("en-IN")}
+          <div className="fw-bold fs-5 text-primary">
+            {formatCurrency(stats.totalSavings, prefs.currency, exchangeRates)}
           </div>
         </Card>
 

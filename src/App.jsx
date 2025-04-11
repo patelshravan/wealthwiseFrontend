@@ -4,6 +4,7 @@ import AppRoutes from "./routes/AppRoutes";
 import ErrorBoundary from "./utils/ErrorBoundary";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./styles/theme.css";
 
 const App = () => {
   return (

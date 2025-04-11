@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, Table, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -10,6 +10,9 @@ import {
   updateInvestment,
   deleteInvestment,
 } from "../../services/investment.service";
+import { formatDate } from "../../utils/formatDate";
+import { PreferencesContext } from "../../context/PreferencesContext";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 const InvestmentPage = () => {
   const [investments, setInvestments] = useState([]);
@@ -29,6 +32,8 @@ const InvestmentPage = () => {
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const itemsPerPage = 5;
+
+  const { prefs, exchangeRates } = useContext(PreferencesContext);
 
   const fetchInvestment = async (token, search = "", page = 1, limit = 5) => {
     setLoading(true);
@@ -164,7 +169,7 @@ const InvestmentPage = () => {
           <h4 className="mb-0">Investment</h4>
           <Form.Control
             type="text"
-            placeholder="Search by name"
+            placeholder="Search by name and type"
             className="w-50 w-md-75"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -201,13 +206,23 @@ const InvestmentPage = () => {
               {investments.map((inv, index) => (
                 <tr key={inv._id}>
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                  <td>{new Date(inv.startDate).toDateString()}</td>{" "}
+                  <td>{formatDate(inv.startDate, prefs.dateFormat)}</td>
                   <td>{inv.type}</td>
                   <td>{inv.name}</td>
                   <td>
-                    ₹ {Number(inv.amountInvested).toLocaleString("en-IN")}
+                    {formatCurrency(
+                      inv.amountInvested,
+                      prefs.currency,
+                      exchangeRates
+                    )}
                   </td>
-                  <td>₹ {Number(inv.currentValue).toLocaleString("en-IN")}</td>
+                  <td>
+                    {formatCurrency(
+                      inv.currentValue,
+                      prefs.currency,
+                      exchangeRates
+                    )}
+                  </td>
                   <td>
                     <Button
                       variant="outline-primary"

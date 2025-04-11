@@ -30,7 +30,7 @@ const MainLayout = () => {
           position: "sticky",
           top: 0,
           zIndex: 1020,
-          background: "#f8f9fa",
+          backgroundColor: "var(--sidebar-bg)",
         }}
       >
         <Sidebar collapsed={collapsed} />
@@ -46,7 +46,7 @@ const MainLayout = () => {
             position: "sticky",
             top: 0,
             zIndex: 1030,
-            background: "#fff",
+            backgroundColor: "var(--header-bg)",
           }}
         >
           <Header onLogout={handleLogout} onToggleSidebar={toggleSidebar} />
@@ -58,7 +58,7 @@ const MainLayout = () => {
             flexGrow: 1,
             overflowY: "auto",
             padding: "24px",
-            backgroundColor: "#f9f9f9",
+            backgroundColor: "var(--body-bg)",
           }}
         >
           <Outlet />

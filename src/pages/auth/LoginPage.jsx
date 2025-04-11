@@ -32,7 +32,7 @@ const LoginPage = () => {
 
     try {
       const res = await login(email, password);
-      const { token, _id, name, profileImage, message } = res.data;
+      const { token, _id, name, profileImage, preferences, message } = res.data;
 
       doLogin({ token });
 
@@ -51,6 +51,7 @@ const LoginPage = () => {
         name,
         email,
         profileImage: profileImage || "",
+        preferences: preferences || {},
       };
       localStorage.setItem("user", JSON.stringify(user));
 

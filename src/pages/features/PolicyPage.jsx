@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, Table, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -10,6 +10,9 @@ import {
   updatePolicy,
   deletePolicy,
 } from "../../services/policy.service";
+import { formatDate } from "../../utils/formatDate";
+import { PreferencesContext } from "../../context/PreferencesContext";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 const PolicyPage = () => {
   const [policies, setPolicies] = useState([]);
@@ -31,6 +34,8 @@ const PolicyPage = () => {
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const itemsPerPage = 5;
+
+  const { prefs, exchangeRates } = useContext(PreferencesContext);
 
   const fetchPolicies = async (token, search = "", page = 1, limit = 5) => {
     setLoading(true);
@@ -208,10 +213,16 @@ const PolicyPage = () => {
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td>{lic.policyNumber}</td>
                   <td>{lic.policyName}</td>
-                  <td>₹ {Number(lic.premiumAmount).toLocaleString("en-IN")}</td>
-                  <td>{new Date(lic.dueDate).toDateString()}</td>
-                  <td>{new Date(lic.nextDueDate).toDateString()}</td>
-                  <td>{new Date(lic.maturityDate).toDateString()}</td>
+                  <td>
+                    {formatCurrency(
+                      lic.premiumAmount,
+                      prefs.currency,
+                      exchangeRates
+                    )}
+                  </td>
+                  <td>{formatDate(lic.dueDate, prefs.dateFormat)}</td>
+                  <td>{formatDate(lic.nextDueDate, prefs.dateFormat)}</td>
+                  <td>{formatDate(lic.maturityDate, prefs.dateFormat)}</td>
                   <td>
                     <Button
                       variant="outline-primary"

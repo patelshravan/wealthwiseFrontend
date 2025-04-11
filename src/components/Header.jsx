@@ -44,7 +44,7 @@ const Header = ({ onLogout, onToggleSidebar }) => {
   ));
 
   return (
-    <Navbar bg="light" className="shadow-sm px-4">
+    <Navbar className="shadow-sm px-4 bg-light">
       <Container fluid>
         <Button variant="light" className="me-3" onClick={onToggleSidebar}>
           <List size={24} />

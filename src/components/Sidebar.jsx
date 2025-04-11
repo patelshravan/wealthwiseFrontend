@@ -25,8 +25,9 @@ const Sidebar = ({ collapsed }) => {
 
   return (
     <div
-      className="bg-light vh-100 d-flex flex-column border-end"
+      className="vh-100 d-flex flex-column border-end"
       style={{
+        backgroundColor: "var(--sidebar-bg)",
         width: collapsed ? "70px" : "250px",
         transition: "width 0.3s",
       }}
@@ -47,9 +48,9 @@ const Sidebar = ({ collapsed }) => {
             as={Link}
             to={item.path}
             key={idx}
-            className={`d-flex align-items-center gap-3 px-3 py-2 text-dark ${
+            className={`d-flex align-items-center gap-3 px-3 py-2 nav-link ${
               location.pathname === item.path
-                ? "fw-bold border-start border-primary border-4"
+                ? "fw-bold border-start border-primary border-4 active"
                 : ""
             }`}
           >

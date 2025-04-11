@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, Table, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -10,6 +10,9 @@ import {
   updateSavings,
   deleteSavings,
 } from "../../services/savings.service";
+import { PreferencesContext } from "../../context/PreferencesContext";
+import { formatDate } from "../../utils/formatDate";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 const SavingsPage = () => {
   const [savings, setSavings] = useState([]);
@@ -26,6 +29,8 @@ const SavingsPage = () => {
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const itemsPerPage = 5;
+
+  const { prefs, exchangeRates } = useContext(PreferencesContext);
 
   const fetchSavings = async (token, search = "", page = 1, limit = 5) => {
     setLoading(true);
@@ -170,8 +175,10 @@ const SavingsPage = () => {
               {savings.map((sav, index) => (
                 <tr key={sav._id}>
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                  <td>{new Date(sav.date).toDateString()}</td>
-                  <td>₹ {Number(sav.amount).toLocaleString("en-IN")}</td>
+                  <td>{formatDate(sav.date, prefs.dateFormat)}</td>
+                  <td>
+                    {formatCurrency(sav.amount, prefs.currency, exchangeRates)}
+                  </td>
                   <td>{sav.note || "--"}</td>
                   <td>
                     <Button

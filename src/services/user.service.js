@@ -24,3 +24,46 @@ export const updateUserProfile = async (id, data, token) => {
 
   return res.data;
 };
+
+export const updatePreferences = (prefs, token) =>
+  axios.put(`${API_BASE}/user/preferences`, prefs, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const fetchLoginActivity = async (id, token) => {
+  const res = await axios.get(`${API_BASE}/user/login-activity`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+export const getTaxReportData = async (token) => {
+  const res = await axios.get(`${API_BASE}/user/report/tax`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+
+export const verifyPasswordBeforeDelete = async (password, token) => {
+  const res = await axios.post(
+    `${API_BASE}/user/verify-password`,
+    { password },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
+export const deleteAccount = async (token) => {
+  const res = await axios.delete(`${API_BASE}/user/account/delete`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};

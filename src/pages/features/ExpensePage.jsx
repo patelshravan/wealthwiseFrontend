@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, Table, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -10,6 +10,9 @@ import {
   updateExpense,
   deleteExpense,
 } from "../../services/expense.service";
+import { formatDate } from "../../utils/formatDate";
+import { PreferencesContext } from "../../context/PreferencesContext";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 const ExpensePage = () => {
   const [expenses, setExpenses] = useState([]);
@@ -34,6 +37,8 @@ const ExpensePage = () => {
   // State for enlarged image
   const [showEnlargedImage, setShowEnlargedImage] = useState(false);
   const [enlargedImageUrl, setEnlargedImageUrl] = useState("");
+
+  const { prefs, exchangeRates } = useContext(PreferencesContext);
 
   const fetchExpenses = async (token, search = "", page = 1, limit = 5) => {
     setLoading(true);
@@ -248,9 +253,11 @@ const ExpensePage = () => {
               {expenses.map((exp, index) => (
                 <tr key={exp._id}>
                   <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                  <td>{new Date(exp.date).toDateString()}</td>
+                  <td>{formatDate(exp.date, prefs.dateFormat)}</td>
                   <td>{exp.category}</td>
-                  <td>₹ {Number(exp.amount).toLocaleString("en-IN")}</td>
+                  <td>
+                    {formatCurrency(exp.amount, prefs.currency, exchangeRates)}
+                  </td>
                   <td>{exp.note || "--"}</td>
                   <td>
                     {exp.image ? (

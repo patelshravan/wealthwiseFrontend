@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Card, Table, Tabs, Tab } from "react-bootstrap";
+import { formatCurrency } from "../../../utils/formatCurrency";
+import { PreferencesContext } from "../../../context/PreferencesContext";
 
 const RecentActivity = ({ data }) => {
   if (!data) return null;
+
+  const { prefs, exchangeRates } = useContext(PreferencesContext);
 
   const renderTable = (items, type) => (
     <Table striped bordered hover responsive size="sm" className="mb-0">
@@ -36,14 +40,29 @@ const RecentActivity = ({ data }) => {
               {type === "policies" ? (
                 <>
                   <td>{item.policyName}</td>
-                  <td>₹{item.premiumAmount.toLocaleString("en-IN")}</td>
+                  <td>
+                    {formatCurrency(
+                      item.premiumAmount,
+                      prefs.currency,
+                      exchangeRates
+                    )}
+                  </td>
                   <td>
                     {new Date(item.dueDate || item.createdAt).toDateString()}
                   </td>
                 </>
               ) : (
                 <>
-                  <td>₹{item.amount?.toLocaleString("en-IN") || 0}</td>
+                  <td>
+                    {formatCurrency(
+                      item.amount ||
+                        item.amountInvested ||
+                        item.premiumAmount ||
+                        0,
+                      prefs.currency,
+                      exchangeRates
+                    )}
+                  </td>
                   <td>{item.note || item.category || "--"}</td>
                   <td>
                     {new Date(
