@@ -36,6 +36,8 @@ const SettingsPage = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loginHistory, setLoginHistory] = useState([]);
   const [showAll, setShowAll] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const visibleLogins = showAll ? loginHistory : loginHistory.slice(0, 5);
 
   const navigate = useNavigate();
@@ -79,6 +81,7 @@ const SettingsPage = () => {
   };
 
   const handleSaveSettings = async () => {
+    setSavingSettings(true);
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) return toast.error("User not found in storage");
@@ -105,6 +108,8 @@ const SettingsPage = () => {
     } catch (err) {
       console.error("Save error:", err);
       toast.error("Failed to save preferences.");
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -582,8 +587,20 @@ const SettingsPage = () => {
             variant="primary"
             className="mt-4 w-100"
             onClick={handleSaveSettings}
+            disabled={savingSettings}
           >
-            Save Settings
+            {savingSettings ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Saving...
+              </>
+            ) : (
+              "Save Settings"
+            )}
           </Button>
         </Form>
       </Card>
