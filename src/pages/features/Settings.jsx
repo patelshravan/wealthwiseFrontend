@@ -302,9 +302,7 @@ const SettingsPage = () => {
   return (
     <>
       <Card className="p-4 shadow-sm">
-        <h4 className="mb-4">
-          Settings -- COMING SOON (DEVELOPMENT IN PROGRESS 🧑‍💻)
-        </h4>
+        <h4 className="mb-4">Settings</h4>
         <Form>
           <Row className="mb-3">
             <Col md={6}>
