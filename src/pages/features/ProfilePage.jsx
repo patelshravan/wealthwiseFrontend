@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Form, Button, Card, Spinner, Image } from "react-bootstrap";
-import { getUserProfile, updateUserProfile } from "../../services/user.service";
+import {
+  Form,
+  Button,
+  Card,
+  Spinner,
+  Image,
+  Modal,
+  FormControl,
+} from "react-bootstrap";
+import {
+  getUserProfile,
+  requestEmailUpdate,
+  updateUserProfile,
+  verifyEmailUpdate,
+} from "../../services/user.service";
 import { toast } from "react-toastify";
 import { FaCamera } from "react-icons/fa";
 import defaultAvatar from "../../assets/default-avatar.png";
@@ -11,6 +24,10 @@ const ProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(null);
   const [originalUser, setOriginalUser] = useState({});
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [updatingEmail, setUpdatingEmail] = useState(false);
 
   const token = localStorage.getItem("token");
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -41,6 +58,7 @@ const ProfilePage = () => {
       user.name !== originalUser.name ||
       user.bio !== originalUser.bio ||
       user.mobile !== originalUser.mobile ||
+      user.email !== originalUser.email ||
       user.profileImage instanceof File
     );
   };
@@ -56,22 +74,53 @@ const ProfilePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+
     try {
-      const response = await updateUserProfile(storedUser._id, user, token);
-      const updatedUser = response.data;
-
-      // 🔄 Update localStorage with full user object
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      window.dispatchEvent(new Event("storage")); // Optional: trigger listeners
-      toast.success("Profile updated successfully");
-
-      setOriginalUser(updatedUser);
+      if (user.email !== originalUser.email) {
+        // Trigger OTP flow
+        const otpRes = await requestEmailUpdate(user.email, token);
+        if (otpRes.success) {
+          toast.info(otpRes.message);
+          setShowOtpModal(true);
+        } else {
+          toast.error(otpRes.message || "Failed to send OTP");
+        }
+      } else {
+        await updateUserDetails();
+      }
     } catch (err) {
-      toast.error("Failed to update profile");
-    } finally {
+      toast.error(err?.response?.data?.message || "Something went wrong");
       setSaving(false);
     }
+  };
+
+  const handleVerifyOtp = async () => {
+    setUpdatingEmail(true);
+    try {
+      const verifyRes = await verifyEmailUpdate(otp, token);
+      if (verifyRes.success) {
+        toast.success("Email updated successfully");
+        setShowOtpModal(false);
+        await updateUserDetails(); // Proceed with saving profile
+      } else {
+        toast.error(verifyRes.message || "Invalid OTP");
+      }
+    } catch (err) {
+      toast.error("OTP verification failed");
+    } finally {
+      setUpdatingEmail(false);
+    }
+  };
+
+  const updateUserDetails = async () => {
+    const response = await updateUserProfile(storedUser._id, user, token);
+    const updatedUser = response.data;
+
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    window.dispatchEvent(new Event("storage"));
+    toast.success("Profile updated successfully");
+    setOriginalUser(updatedUser);
+    setSaving(false);
   };
 
   if (loading) return <Spinner animation="border" />;
@@ -135,7 +184,10 @@ const ProfilePage = () => {
                 name="email"
                 type="email"
                 value={user.email || ""}
-                disabled
+                onChange={(e) => {
+                  setUser((prev) => ({ ...prev, email: e.target.value }));
+                  setNewEmail(e.target.value);
+                }}
               />
             </Form.Group>
 
@@ -169,6 +221,34 @@ const ProfilePage = () => {
           </Form>
         </Card>
       </div>
+      <Modal show={showOtpModal} onHide={() => setShowOtpModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Email Verification</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            Please enter the OTP sent to <strong>{newEmail}</strong>
+          </p>
+          <FormControl
+            type="text"
+            placeholder="Enter OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowOtpModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleVerifyOtp}
+            disabled={updatingEmail}
+          >
+            {updatingEmail ? "Verifying..." : "Verify OTP"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

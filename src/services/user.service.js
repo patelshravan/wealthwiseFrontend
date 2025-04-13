@@ -67,3 +67,27 @@ export const deleteAccount = async (token) => {
   });
   return res.data;
 };
+
+export const requestEmailUpdate = async (newEmail, token) => {
+  const res = await fetch(`${API_BASE}/user/email/update-request`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ newEmail }),
+  });
+  return res.json();
+};
+
+export const verifyEmailUpdate = async (otp, token) => {
+  const res = await fetch(`${API_BASE}/user/email/verify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ otp }),
+  });
+  return res.json();
+};
